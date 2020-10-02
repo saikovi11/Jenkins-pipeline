@@ -1,0 +1,55 @@
+pipeline{
+stages{
+stage('master-branch-stuff'){
+  agent any
+  when{
+    branch 'master'
+  }
+  steps {
+    echo 'run this stage - ony if the branch = master branch'
+  }
+}
+stage('feature-branch-stuff') {
+    agent label:'test-node'
+    when { branch "feature/*" }
+    steps {
+        echo 'run this stage - only if the branch name started with feature/'
+    }
+}
+stage('expression-branch') {
+    agent label:'some-node'
+    when {
+    expression {
+        return env.BRANCH_NAME != 'master';
+        }
+    }
+    steps {
+        echo 'run this stage - when branch is not equal to master'
+    }
+}
+stage('env-specific-stuff') {
+    agent label:'test-node'
+    when { 
+      environment name: 'NAME', value: 'this' 
+    }
+    steps {
+        echo 'run this stage - only if the env name and value matches'
+    }
+}
+stage('env-specific-stuff') {
+    agent label:'test-node'
+	when {
+	  anyOf {
+		environment ignoreCase: true, name: 'env', value: 'qa'
+		not {
+		  environment ignoreCase: true, name: 'branch', value: 'dev'
+		}
+	  }
+	  beforeAgent true
+	}
+    steps {
+        echo 'run this stage - only if the env name and value matches'
+    }
+}
+}
+}
